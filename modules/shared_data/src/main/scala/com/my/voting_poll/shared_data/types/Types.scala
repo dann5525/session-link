@@ -19,10 +19,17 @@ object Types {
   case class Poll(id: String, name: String, owner: Address, pollOptions: Map[String, Long], usersVotes: Map[Address, Map[String, Long]], startSnapshotOrdinal: Long, endSnapshotOrdinal: Long)
   
   @derive(decoder, encoder)
-  case class CreateSession(creator: Address, id: String, endSnapshotOrdinal: Long) extends PollUpdate
+  case class CreateSession(creator: Address, acessId:String, dataId: String, endSnapshotOrdinal: Long) extends PollUpdate
   
   @derive(decoder, encoder)
-  case class Session(creator: Address, id: String, endSnapshotOrdinal: Long)
+  case class Session(id: String, creator: Address, acessId:String, dataId: String, endSnapshotOrdinal: Long)  
+
+ //What does each session need from an abstract point? 
+ //sessionId for the state maping,
+ //acessProvider entetie that is giving acess
+ //acessId:: entetie that has acces
+ //acessObj Object that the entie has acess to   -> if the metagraph has acess to the Objects metadata we can validate the acessProvider has allowance to give acess in the first place
+ //acessDuration how long will the entetie have acess/ or some derivation.. how many time can the entite acess.. 
 
   @derive(decoder, encoder)
   case class VoteStateOnChain(updates: List[PollUpdate]) extends DataOnChainState

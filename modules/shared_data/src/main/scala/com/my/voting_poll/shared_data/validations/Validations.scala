@@ -40,8 +40,8 @@ object Validations {
 
     maybeState match {
       case Some(state) =>
-        
-        val validatedPoll = validateIfSessionAlreadyExists(state, update.id)
+        val sessionId = Hash.fromBytes(Serializers.serializeUpdate(update))
+        val validatedPoll = validateIfSessionAlreadyExists(state, sessionId.toString)
         validatedCreatePollSnapshot.productR(validatedPoll)
       case None => validatedCreatePollSnapshot
     }

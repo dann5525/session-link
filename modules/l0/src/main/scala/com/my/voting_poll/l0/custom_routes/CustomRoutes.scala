@@ -59,8 +59,10 @@ case class CustomRoutes[F[_] : Async](calculatedStateService: CalculatedStateSer
 
    @derive(decoder, encoder)
   case class SessionResponse(
-    id: String, 
+    id : String,
+    acessId:String, 
     creator: Address, 
+    data: String,
     endSnapshotOrdinal: Long,
     status: String
   )
@@ -70,6 +72,8 @@ case class CustomRoutes[F[_] : Async](calculatedStateService: CalculatedStateSer
     SessionResponse(
       id = session.id,
       creator = session.creator,
+      acessId = session.acessId,
+      data = session.dataId,
       endSnapshotOrdinal = session.endSnapshotOrdinal,
       status = status
     )

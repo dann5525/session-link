@@ -11,7 +11,7 @@ object TypeValidators {
   def validateIfPollAlreadyExists(state: DataState[VoteStateOnChain, VoteCalculatedState], pollId: String): DataApplicationValidationType =
     PollAlreadyExists.whenA(state.calculated.polls.contains(pollId))
 
-  def validateIfSessionAlreadyExists(state: DataState[VoteStateOnChain, VoteCalculatedState], id: String): DataApplicationValidationType =
+  def validateIfSessionAlreadyExists(state: DataState[VoteStateOnChain, VoteCalculatedState],id: String): DataApplicationValidationType =
     PollAlreadyExists.whenA(state.calculated.sessions.contains(id))  
 
   def validateIfVotePollExists(state: DataState[VoteStateOnChain, VoteCalculatedState], pollId: String): DataApplicationValidationType =

@@ -20,11 +20,11 @@ object Combiners {
   }
 
   def combineCreateSession(createPoll: CreateSession, state: DataState[VoteStateOnChain, VoteCalculatedState]): DataState[VoteStateOnChain, VoteCalculatedState] = {
-
-    val newState = Session(createPoll.creator, createPoll.id, createPoll.endSnapshotOrdinal)
+    val sessionId = Hash.fromBytes(Serializers.serializeUpdate(createPoll)).toString
+    val newState = Session(sessionId, createPoll.creator, createPoll.acessId, createPoll.dataId, createPoll.endSnapshotOrdinal)
 
     val newOnChain = VoteStateOnChain(state.onChain.updates :+ createPoll)
-    val newCalculatedState = state.calculated.focus(_.sessions).modify(_.updated(createPoll.id, newState))
+    val newCalculatedState = state.calculated.focus(_.sessions).modify(_.updated(sessionId, newState))
 
     DataState(newOnChain, newCalculatedState)
   }
