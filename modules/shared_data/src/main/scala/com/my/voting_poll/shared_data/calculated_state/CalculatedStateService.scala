@@ -42,18 +42,27 @@ object CalculatedStateService {
               case (acc, (pollId, poll)) =>
                 acc.updated(pollId, poll)
             }
-            
-            // Update sessions
-            val updatedSessions = state.sessions.foldLeft(currentVoteCalculatedState.sessions) {
+
+           val thresholdOrdinal = snapshotOrdinal.value.value
+
+           
+        
+           // Step 1: Update the current state with new sessions
+            val mergedSessions = state.sessions.foldLeft(currentVoteCalculatedState.sessions) {
               case (acc, (sessionId, session)) =>
                 acc.updated(sessionId, session)
             }
-            
+
+            // Step 2: Filter out expired sessions from the merged state
+            val activeSessions = mergedSessions.filter {
+              case (_, session) => session.endSnapshotOrdinal >= thresholdOrdinal
+            }
+
             CalculatedState(
               snapshotOrdinal, 
               VoteCalculatedState(
                 polls = updatedPolls,
-                sessions = updatedSessions
+                sessions = activeSessions 
               )
             )
           }.as(true)
