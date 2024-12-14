@@ -9,20 +9,12 @@ object Types {
   @derive(decoder, encoder)
   sealed trait PollUpdate extends DataUpdate
 
+ 
   @derive(decoder, encoder)
-  case class CreatePoll(name: String, owner: Address, pollOptions: List[String], startSnapshotOrdinal: Long, endSnapshotOrdinal: Long) extends PollUpdate
-
-  @derive(decoder, encoder)
-  case class VoteInPoll(pollId: String, address: Address, option: String) extends PollUpdate
-
-  @derive(decoder, encoder)
-  case class Poll(id: String, name: String, owner: Address, pollOptions: Map[String, Long], usersVotes: Map[Address, Map[String, Long]], startSnapshotOrdinal: Long, endSnapshotOrdinal: Long)
+  case class CreateSession(accessProvider: Address, accessId:String, accessObj: String, endSnapshotOrdinal: Long) extends PollUpdate
   
   @derive(decoder, encoder)
-  case class CreateSession(creator: Address, acessId:String, dataId: String, endSnapshotOrdinal: Long) extends PollUpdate
-  
-  @derive(decoder, encoder)
-  case class Session(id: String, creator: Address, acessId:String, dataId: String, endSnapshotOrdinal: Long)  
+  case class Session(id: String, accessProvider: Address, accessId:String, accessObj: String, endSnapshotOrdinal: Long)  
 
  //What does each session need from an abstract point? 
  //sessionId for the state maping,
@@ -35,5 +27,5 @@ object Types {
   case class VoteStateOnChain(updates: List[PollUpdate]) extends DataOnChainState
 
   @derive(decoder, encoder)
-  case class VoteCalculatedState(polls: Map[String, Poll], sessions: Map[String, Session]) extends DataCalculatedState
+  case class VoteCalculatedState(sessions: Map[String, Session]) extends DataCalculatedState
 }

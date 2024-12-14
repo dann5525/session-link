@@ -39,7 +39,7 @@ object Main extends CurrencyL0App(
     calculatedStateService: CalculatedStateService[IO]
   ): BaseDataApplicationL0Service[IO] =
     BaseDataApplicationL0Service(new DataApplicationL0Service[IO, PollUpdate, VoteStateOnChain, VoteCalculatedState] {
-      override def genesis: DataState[VoteStateOnChain, VoteCalculatedState] = DataState(VoteStateOnChain(List.empty), VoteCalculatedState(Map.empty, Map.empty))
+      override def genesis: DataState[VoteStateOnChain, VoteCalculatedState] = DataState(VoteStateOnChain(List.empty), VoteCalculatedState(Map.empty))
 
       override def validateUpdate(update: PollUpdate)(implicit context: L0NodeContext[IO]): IO[DataApplicationValidationErrorOr[Unit]] = ().validNec.pure[IO]
 

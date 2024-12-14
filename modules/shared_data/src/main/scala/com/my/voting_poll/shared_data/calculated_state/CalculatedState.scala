@@ -8,5 +8,5 @@ case class CalculatedState(ordinal: SnapshotOrdinal, state: VoteCalculatedState)
 
 object CalculatedState {
   def empty: CalculatedState =
-    CalculatedState(SnapshotOrdinal(NonNegLong.MinValue), VoteCalculatedState(Map.empty, Map.empty))
+    CalculatedState(SnapshotOrdinal(NonNegLong.MinValue), VoteCalculatedState(Map.empty))
 }

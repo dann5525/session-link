@@ -21,48 +21,13 @@ import org.typelevel.log4cats.slf4j.Slf4jLogger
 case class CustomRoutes[F[_] : Async](calculatedStateService: CalculatedStateService[F]) extends Http4sDsl[F] with PublicRoutes[F] {
   implicit val logger: SelfAwareStructuredLogger[F] = Slf4jLogger.getLogger[F]
 
-  @derive(decoder, encoder)
-  case class PollResponse(id: String, name: String, owner: Address, result: Map[String, Long], startSnapshotOrdinal: Long, endSnapshotOrdinal: Long, status: String)
-
-  private def formatPoll(poll: Poll, lastOrdinal: Long): PollResponse = {
-    if (poll.endSnapshotOrdinal < lastOrdinal) {
-      PollResponse(poll.id, poll.name, poll.owner, poll.pollOptions, poll.startSnapshotOrdinal, poll.endSnapshotOrdinal, "Closed")
-    } else if (poll.startSnapshotOrdinal > lastOrdinal) {
-      PollResponse(poll.id, poll.name, poll.owner, poll.pollOptions, poll.startSnapshotOrdinal, poll.endSnapshotOrdinal, "Not Started")
-    } else {
-      PollResponse(poll.id, poll.name, poll.owner, poll.pollOptions, poll.startSnapshotOrdinal, poll.endSnapshotOrdinal, "Open")
-    }
-  }
-
-  private def getAllPolls: F[Response[F]] = {
-    calculatedStateService.getCalculatedState
-      .map(v => (v.ordinal, v.state))
-      .map { case (ord, state) => state.polls.view.mapValues(formatPoll(_, ord.value.value)).toList }
-      .flatMap(Ok(_))
-      .handleErrorWith { e =>
-        val message = s"An error occurred when getAllPolls: ${e.getMessage}"
-        logger.error(message) >> new Exception(message).raiseError[F, Response[F]]
-      }
-  }
-
-  private def getPollById(pollId: String): F[Response[F]] = {
-    calculatedStateService.getCalculatedState
-      .map(v => (v.ordinal, v.state))
-      .map { case (ord, state) => state.polls.get(pollId).map(formatPoll(_, ord.value.value)) }
-      .flatMap(_.fold(NotFound())(Ok(_)))
-      .handleErrorWith { e =>
-        val message = s"An error occurred when getPollById: ${e.getMessage}"
-        logger.error(message) >> new Exception(message).raiseError[F, Response[F]]
-      }
-
-  }
-
+ 
    @derive(decoder, encoder)
   case class SessionResponse(
     id : String,
-    acessId:String, 
-    creator: Address, 
-    data: String,
+    accessId:String, 
+    accessProvider: Address, 
+    accessObj: String,
     endSnapshotOrdinal: Long,
     status: String
   )
@@ -71,9 +36,9 @@ case class CustomRoutes[F[_] : Async](calculatedStateService: CalculatedStateSer
     val status = if (session.endSnapshotOrdinal < lastOrdinal) "Expired" else "Active"
     SessionResponse(
       id = session.id,
-      creator = session.creator,
-      acessId = session.acessId,
-      data = session.dataId,
+      accessProvider = session.accessProvider,
+      accessId = session.accessId,
+      data = session.accessObj,
       endSnapshotOrdinal = session.endSnapshotOrdinal,
       status = status
     )
@@ -106,8 +71,6 @@ case class CustomRoutes[F[_] : Async](calculatedStateService: CalculatedStateSer
   }
 
   private val routes: HttpRoutes[F] = HttpRoutes.of[F] {
-    case GET -> Root / "polls" => getAllPolls
-    case GET -> Root / "polls" / poolId => getPollById(poolId)
     case GET -> Root / "sessions" => getAllSessions
     case GET -> Root / "sessions" / sessionId => getFilteredSessionById(sessionId)
   }

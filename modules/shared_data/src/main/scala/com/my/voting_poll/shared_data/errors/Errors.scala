@@ -21,20 +21,8 @@ object Errors {
     val message = "Poll already exists"
   }
 
-  case object PollDoesNotExists extends DataApplicationValidationError {
-    val message = "Poll does not exists"
-  }
-
-  case object InvalidOption extends DataApplicationValidationError {
-    val message = "Invalid option"
-  }
-
   case object InvalidAddress extends DataApplicationValidationError {
     val message = "Provided address different than proof"
-  }
-
-  case object RepeatedVote extends DataApplicationValidationError {
-    val message = "This user already voted!"
   }
 
   case object InvalidEndSnapshot extends DataApplicationValidationError {
@@ -43,14 +31,6 @@ object Errors {
 
   case object CouldNotGetLatestCurrencySnapshot extends DataApplicationValidationError {
     val message = "Could not get latest currency snapshot!"
-  }
-
-  case object NotStartedPool extends DataApplicationValidationError {
-    val message = "Not started pool"
-  }
-
-  case object ClosedPool extends DataApplicationValidationError {
-    val message = "Pool is closed"
   }
 
   case object NotEnoughWalletBalance extends DataApplicationValidationError {

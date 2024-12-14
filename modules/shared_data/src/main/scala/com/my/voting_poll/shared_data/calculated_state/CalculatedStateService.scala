@@ -37,11 +37,7 @@ object CalculatedStateService {
           stateRef.update { currentState =>
             val currentVoteCalculatedState = currentState.state
             
-            // Update polls
-            val updatedPolls = state.polls.foldLeft(currentVoteCalculatedState.polls) {
-              case (acc, (pollId, poll)) =>
-                acc.updated(pollId, poll)
-            }
+           
 
            val thresholdOrdinal = snapshotOrdinal.value.value
 
@@ -61,7 +57,6 @@ object CalculatedStateService {
             CalculatedState(
               snapshotOrdinal, 
               VoteCalculatedState(
-                polls = updatedPolls,
                 sessions = activeSessions 
               )
             )

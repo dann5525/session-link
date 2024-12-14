@@ -8,10 +8,10 @@ import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.syntax.option._
 import com.my.voting_poll.shared_data.Utils.{getLastCurrencySnapshotOrdinal, getLastMetagraphIncrementalSnapshotInfo}
-import com.my.voting_poll.shared_data.combiners.Combiners.{combineCreatePoll, combineVoteInPoll, combineCreateSession}
+import com.my.voting_poll.shared_data.combiners.Combiners.{combineCreateSession}
 import com.my.voting_poll.shared_data.errors.Errors.{CouldNotGetLatestCurrencySnapshot, DataApplicationValidationTypeOps}
 import com.my.voting_poll.shared_data.types.Types._
-import com.my.voting_poll.shared_data.validations.Validations.{createPollValidations, createPollValidationsWithSignature, voteInPollValidations, voteInPollValidationsWithSignature, createSessionValidations, createSessionValidationsWithSignature}
+import com.my.voting_poll.shared_data.validations.Validations.{createSessionValidations, createSessionValidationsWithSignature}
 import org.slf4j.LoggerFactory
 import org.tessellation.currency.dataApplication.dataApplication.DataApplicationValidationErrorOr
 import org.tessellation.currency.dataApplication.{DataState, L0NodeContext, L1NodeContext}
@@ -27,13 +27,7 @@ object LifecycleSharedFunctions {
       maybeLastSnapshotOrdinal <- getLastCurrencySnapshotOrdinal(context.asRight[L0NodeContext[F]])
       response <- maybeLastSnapshotOrdinal.fold(CouldNotGetLatestCurrencySnapshot.invalid.pure[F]) { lastSnapshotOrdinal =>
         update match {
-          case poll: CreatePoll => createPollValidations(poll, none, lastSnapshotOrdinal.some)
-          case voteInPoll: VoteInPoll =>
-            getLastMetagraphIncrementalSnapshotInfo(context.asRight[L0NodeContext[F]])
-              .flatMap {
-                case Some(snapshotInfo) => voteInPollValidations(voteInPoll, none, lastSnapshotOrdinal.some, snapshotInfo)
-                case None => CouldNotGetLatestCurrencySnapshot.invalid.pure[F]
-              }
+          
           case session: CreateSession => createSessionValidations(session, none, lastSnapshotOrdinal.some)
         }
       }
@@ -45,13 +39,10 @@ object LifecycleSharedFunctions {
       maybeLastSnapshotOrdinal <- getLastCurrencySnapshotOrdinal(context.asLeft[L1NodeContext[F]])
       maybeLastSnapshotInfo <- getLastMetagraphIncrementalSnapshotInfo(context.asLeft[L1NodeContext[F]])
       response <- (maybeLastSnapshotOrdinal, maybeLastSnapshotInfo) match {
-        case (Some(lastSnapshotOrdinal), Some(lastSnapshotInfo)) =>
+        case (Some(lastSnapshotOrdinal@_), Some(lastSnapshotInfo@_)) =>
           updates.traverse { signedUpdate =>
             signedUpdate.value match {
-              case poll: CreatePoll =>
-                createPollValidationsWithSignature(poll, signedUpdate.proofs, state)
-              case voteInPoll: VoteInPoll =>
-                voteInPollValidationsWithSignature(voteInPoll, signedUpdate.proofs, state, lastSnapshotOrdinal, lastSnapshotInfo)
+              
               case session: CreateSession =>
                 createSessionValidationsWithSignature(session, signedUpdate.proofs, state)
             }
@@ -72,15 +63,12 @@ object LifecycleSharedFunctions {
         case None =>
           logger.info("Could not get lastMetagraphIncrementalSnapshotInfo, keeping current state")
           state.pure
-        case Some(snapshotInfo) =>
+        case Some(snapshotInfo@_) =>
           newStateF.flatMap(newState => {
             val updatedState = updates.foldLeft(newState) { (acc, signedUpdate) => {
               val update = signedUpdate.value
               update match {
-                case poll: CreatePoll =>
-                  combineCreatePoll(poll, acc)
-                case voteInPoll: VoteInPoll =>
-                  combineVoteInPoll(voteInPoll, acc, snapshotInfo)
+                
                 case session: CreateSession =>
                   combineCreateSession(session, acc)
 
