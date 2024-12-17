@@ -1,128 +1,141 @@
-# Metagraph - Data API - Voting Poll
+# Session_Link - Notarization API for Sessions  
 
-This example demonstrates a basic voting poll use case using the Data API. In the example, a client can send two types of signed data updates to a metagraph: one to create a vote poll and another to vote in a poll. These updates are validated before being merged into the snapshot state.
+**Session_Link** is a project designed to **notarize sessions** that can be accessed by different services. It ensures that sessions are validated, securely stored, and accessible across multiple platforms. This project is based on the **voting-poll example** as a starting point, leveraging its foundational principles while extending functionality for session management and notarization.
 
-Here's how the voting system works:
+---
 
-- Each wallet can only vote once per poll.
-- If a voting wallet does not have any balance, the vote will be disregarded. The user can vote again with the same wallet once they replenish its balance.
-- We verify the selected option to ensure its validity.
-- The voting weight is proportional to the balance in the wallet. For instance, if a wallet has a balance of 100 tokens, a vote from this wallet will increment the tally of the selected option by 100.
-- The system prevents the creation of duplicate polls.
+## Overview
 
-## Template
+The **Session_Link** system works as follows:
 
-Primary code for the example can be found in the following files:
+- **Session Creation:** Authorized users can create sessions that are timestamped and notarized.
+- **Session Access:** Services can securely retrieve session information to ensure its validity.
+- **Validation:** Only verified sessions are accepted into the system, ensuring integrity and preventing duplicates.
+- **Security:** Session ownership and access rely on cryptographic signatures.
+- **Cross-Service Compatibility:** Sessions are designed to be accessed by multiple external services without compromising data security.
 
-`modules/l0/src/main/scala/com/my/currency/l0/*`
+---
 
-`modules/l1/src/main/scala/com/my/currency/l1/*`
+## Template Structure  
 
-`modules/data_l1/src/main/scala/com/my/currency/data_l1/*`
+The core code for the application resides in the following directories:
 
-`modules/shared_data/src/main/scala/com/my/currency/shared_data/*`
+```
+modules/l0/src/main/scala/com/sessionlink/l0/*
+modules/l1/src/main/scala/com/sessionlink/l1/*
+modules/data_l1/src/main/scala/com/sessionlink/data_l1/*
+modules/shared_data/src/main/scala/com/sessionlink/shared_data/*
+```
 
-### Application Lifecycle
+---
 
-The methods of the DataApplication are invoked in the following sequence:
+## Application Lifecycle  
 
-- `validateUpdate`
-- `validateData`
-- `combine`
-- `dataEncoder`
-- `dataDecoder`
-- `calculatedStateEncoder`
-- `signedDataEntityDecoder`
-- `serializeBlock`
-- `deserializeBlock`
-- `serializeState`
-- `deserializeState`
-- `serializeUpdate`
-- `deserializeUpdate`
-- `setCalculatedState`
-- `getCalculatedState`
-- `hashCalculatedState`
-- `routes`
+The lifecycle of the **Session_Link** system follows these key functions:
 
-For a more detailed understanding, please refer to the [complete documentation](https://docs.constellationnetwork.io/sdk/frameworks/currency/data-api) on the Data API.
+1. **Session Creation**
+   - New sessions are validated and notarized.
 
-### Lifecycle Functions
+2. **Session Validation**
+   - Ensures the session's origin and integrity.
 
-#### -> `validateUpdate`
+3. **State Management**
+   - Combines sessions into the snapshot state to maintain a consistent record.
 
-- This method initiates the initial validation of updates on the L1 layer. Due to a lack of contextual information (state), its validation capabilities are constrained. Any errors arising from this method result in a 500 response from the `/data` POST endpoint.
+---
 
-#### -> `validateData`
+### Key Methods  
 
-- This method validates data on the L0 layer, with access to contextual information, including the current state. In this example, we ensure that the provided address matches the one that signed the message. Additionally, we verify the most recent update timestamp to prevent the acceptance of outdated or duplicated data.
+The following methods govern the lifecycle and validation of the system:
 
-#### -> `combine`
+#### 1. `validateUpdate`
+- Performs preliminary validation for new session updates. If the update fails validation, the system returns a `500` error.
 
-- This method takes validated data and the prior state, combining them to produce the new state. In this instance, we update device information in the state based on the validated update.
+#### 2. `validateData`
+- Contextual validation on the L0 layer. This step ensures:
+   - The session origin matches the signing user.
+   - Duplicate or outdated sessions are rejected.
 
-#### -> `dataEncoder` and `dataDecoder`
+#### 3. `combine`
+- Integrates validated session data into the current state.
 
-- These are the encoder/decoder components used for incoming updates.
+#### 4. `dataEncoder` / `dataDecoder`
+- Handles encoding and decoding of session updates.
 
-#### -> `calculatedStateEncoder`
+#### 5. `calculatedStateEncoder`
+- Manages the serialization of the notarized session state.
 
-- This encoder is employed for the calculatedState.
+#### 6. `serializeBlock` / `deserializeBlock`
+- Converts blocks to and from byte arrays for snapshot storage.
 
-#### -> `signedDataEntityDecoder`
+#### 7. `serializeState` / `deserializeState`
+- Manages state serialization for storage.
 
-- This function handles the parsing of request body formats (JSON, string, xml) into a `Signed[Update]` class.
+#### 8. `setCalculatedState` / `getCalculatedState`
+- Provides methods to set and retrieve the current notarized state.
 
-#### -> `serializeBlock` and `deserializeBlock`
+#### 9. `routes`
+- Defines custom API routes for accessing session data.
 
-- The serialize function accepts the block object and converts it into a byte array for storage within the snapshot. The deserialize function is responsible for deserializing into Blocks.
+---
 
-#### -> `serializeState` and `deserializeState`
+## API Endpoints  
 
-- The serialize function accepts the state object and converts it into a byte array for storage within the snapshot. The deserialize function is responsible for deserializing into State.
+The following endpoints are provided for interacting with the notarized sessions:
 
-#### -> `serializeUpdate` and `deserializeUpdate`
+- **GET** `<base_url>/data-application/sessions`  
+   Returns all active notarized sessions.
 
-- The serialize function accepts the update object and converts it into a byte array for storage within the snapshot. The deserialize function is responsible for deserializing into Updates.
+- **GET** `<base_url>/data-application/sessions/:session_id`  
+   Returns details of a specific session by its ID.
 
-#### -> `setCalculatedState`
+---
 
-- This function sets the calculatedState. You can store this as a variable in memory or use external services such as databases. In this example, we use in-memory storage.
+## Sample UI Integration  
 
-#### -> `getCalculatedState`
+Session_Link includes a sample UI web app for interacting with the API. The UI allows users to create and validate sessions while demonstrating integration with wallets and external services.
 
-- This function retrieves the calculated state.
+Instructions for setting up the sample UI can be found in the [sample-ui](./sample-ui/README.md) folder.
 
-#### -> `hashCalculatedState`
+---
 
-- This function creates a hash of the calculatedState to be validated when rebuilding this state, in case of restarting the metagraph.
+## Scripts  
 
-#### -> `routes`
+The project includes a script to generate, sign, and send session updates to the system:
 
-Customizes routes for our application.
+### **Script Location**  
+`scripts/send_data_transaction.js`
 
-In this example, the following endpoints are implemented:
+### **Usage**
 
-- GET `<metagraph l0 url>/data-application/polls`: Returns the polls.
-- GET `<metagraph l0 url>/data-application/polls/:poll_id`: Returns the poll by id.
+1. **Install dependencies**:  
+   ```bash
+   npm i
+   ```
 
-## Sample UI Project
+2. **Update the script with your configuration**:  
+   Replace the following variables in the script:  
+   - `globalL0Url`  
+   - `metagraphL1DataUrl`  
+   - `privateKey`  
 
-This example comes with a sample UI web app demonstrating integration with Stargazer Wallet and interaction with the metagraph APIs. You can set it up and run it from the instructions in the [sample-ui](./sample-ui/README.md) folder.
+3. **Run the script**:  
+   ```bash
+   node send_data_transaction.js
+   ```
 
-## Scripts
+4. **Verify the State**:  
+   Query the updated session state using:  
+   ```plaintext
+   GET <your metagraph L0 base url>/data-application/sessions
+   ```
 
-This example includes a script to generate, sign, and send data updates to the metagraph in `scripts/send_data_transaction.js`. This is a simple script where you must provide the `globalL0Url` and the `metagraphL1DataUrl` to match the configuration of your metagraph. You also must provide a private key representing the user that will create or vote in a poll (client) that is sending the transaction, this key will be used to sign the transaction and to log in your wallet to the network.
+---
 
-### Usage
+## Documentation  
 
-- With node installed, move to the directory and then type: `npm i`.
+For additional details, refer to the official [Data API Documentation](https://docs.constellationnetwork.io/sdk/frameworks/currency/data-api).
 
-- Replace the `globalL0Url`, `metagraphL1DataUrl`, and `privateKey` variables with your values.
+---
 
-- Run the script with `node send_data_transaction.js`
-
-- Query the state GET endpoint at `<your metagraph L0 base url>/data-application/addresses` to see the updated state after each update.
-
-
-
-
+This README provides an overview of how **Session_Link** enables secure, notarized sessions across services, building upon the foundational principles of the voting-poll example. Let us know if you need further clarification or assistance! 🚀
