@@ -38,48 +38,48 @@ object Main extends CurrencyL0App(
   private def makeBaseDataApplicationL0Service(
     calculatedStateService: CalculatedStateService[IO]
   ): BaseDataApplicationL0Service[IO] =
-    BaseDataApplicationL0Service(new DataApplicationL0Service[IO, PollUpdate, VoteStateOnChain, VoteCalculatedState] {
-      override def genesis: DataState[VoteStateOnChain, VoteCalculatedState] = DataState(VoteStateOnChain(List.empty), VoteCalculatedState(Map.empty))
+    BaseDataApplicationL0Service(new DataApplicationL0Service[IO, SessionUpdate, SessionStateOnChain, SessionCalculatedState] {
+      override def genesis: DataState[SessionStateOnChain, SessionCalculatedState] = DataState(SessionStateOnChain(List.empty), SessionCalculatedState(Map.empty))
 
-      override def validateUpdate(update: PollUpdate)(implicit context: L0NodeContext[IO]): IO[DataApplicationValidationErrorOr[Unit]] = ().validNec.pure[IO]
+      override def validateUpdate(update: SessionUpdate)(implicit context: L0NodeContext[IO]): IO[DataApplicationValidationErrorOr[Unit]] = ().validNec.pure[IO]
 
-      override def validateData(state: DataState[VoteStateOnChain, VoteCalculatedState], updates: NonEmptyList[Signed[PollUpdate]])(implicit context: L0NodeContext[IO]): IO[DataApplicationValidationErrorOr[Unit]] = LifecycleSharedFunctions.validateData[IO](state, updates)
+      override def validateData(state: DataState[SessionStateOnChain, SessionCalculatedState], updates: NonEmptyList[Signed[SessionUpdate]])(implicit context: L0NodeContext[IO]): IO[DataApplicationValidationErrorOr[Unit]] = LifecycleSharedFunctions.validateData[IO](state, updates)
 
-      override def combine(state: DataState[VoteStateOnChain, VoteCalculatedState], updates: List[Signed[PollUpdate]])(implicit context: L0NodeContext[IO]): IO[DataState[VoteStateOnChain, VoteCalculatedState]] = LifecycleSharedFunctions.combine[IO](state, updates)
+      override def combine(state: DataState[SessionStateOnChain, SessionCalculatedState], updates: List[Signed[SessionUpdate]])(implicit context: L0NodeContext[IO]): IO[DataState[SessionStateOnChain, SessionCalculatedState]] = LifecycleSharedFunctions.combine[IO](state, updates)
 
-      override def serializeState(state: VoteStateOnChain): IO[Array[Byte]] = IO(Serializers.serializeState(state))
+      override def serializeState(state: SessionStateOnChain): IO[Array[Byte]] = IO(Serializers.serializeState(state))
 
-      override def serializeUpdate(update: PollUpdate): IO[Array[Byte]] = IO(Serializers.serializeUpdate(update))
+      override def serializeUpdate(update: SessionUpdate): IO[Array[Byte]] = IO(Serializers.serializeUpdate(update))
 
       override def serializeBlock(block: Signed[DataApplicationBlock]): IO[Array[Byte]] = IO(Serializers.serializeBlock(block)(dataEncoder.asInstanceOf[Encoder[DataUpdate]]))
 
-      override def deserializeState(bytes: Array[Byte]): IO[Either[Throwable, VoteStateOnChain]] = IO(Deserializers.deserializeState(bytes))
+      override def deserializeState(bytes: Array[Byte]): IO[Either[Throwable, SessionStateOnChain]] = IO(Deserializers.deserializeState(bytes))
 
-      override def deserializeUpdate(bytes: Array[Byte]): IO[Either[Throwable, PollUpdate]] = IO(Deserializers.deserializeUpdate(bytes))
+      override def deserializeUpdate(bytes: Array[Byte]): IO[Either[Throwable, SessionUpdate]] = IO(Deserializers.deserializeUpdate(bytes))
 
       override def deserializeBlock(bytes: Array[Byte]): IO[Either[Throwable, Signed[DataApplicationBlock]]] = IO(Deserializers.deserializeBlock(bytes)(dataDecoder.asInstanceOf[Decoder[DataUpdate]]))
 
-      override def dataEncoder: Encoder[PollUpdate] = implicitly[Encoder[PollUpdate]]
+      override def dataEncoder: Encoder[SessionUpdate] = implicitly[Encoder[SessionUpdate]]
 
-      override def dataDecoder: Decoder[PollUpdate] = implicitly[Decoder[PollUpdate]]
+      override def dataDecoder: Decoder[SessionUpdate] = implicitly[Decoder[SessionUpdate]]
 
       override def routes(implicit context: L0NodeContext[IO]): HttpRoutes[IO] = CustomRoutes[IO](calculatedStateService).public
 
-      override def signedDataEntityDecoder: EntityDecoder[IO, Signed[PollUpdate]] = circeEntityDecoder
+      override def signedDataEntityDecoder: EntityDecoder[IO, Signed[SessionUpdate]] = circeEntityDecoder
 
-      override def calculatedStateEncoder: Encoder[VoteCalculatedState] = implicitly[Encoder[VoteCalculatedState]]
+      override def calculatedStateEncoder: Encoder[SessionCalculatedState] = implicitly[Encoder[SessionCalculatedState]]
 
-      override def calculatedStateDecoder: Decoder[VoteCalculatedState] = implicitly[Decoder[VoteCalculatedState]]
+      override def calculatedStateDecoder: Decoder[SessionCalculatedState] = implicitly[Decoder[SessionCalculatedState]]
 
-      override def getCalculatedState(implicit context: L0NodeContext[IO]): IO[(SnapshotOrdinal, VoteCalculatedState)] = calculatedStateService.getCalculatedState.map(calculatedState => (calculatedState.ordinal, calculatedState.state))
+      override def getCalculatedState(implicit context: L0NodeContext[IO]): IO[(SnapshotOrdinal, SessionCalculatedState)] = calculatedStateService.getCalculatedState.map(calculatedState => (calculatedState.ordinal, calculatedState.state))
 
-      override def setCalculatedState(ordinal: SnapshotOrdinal, state: VoteCalculatedState)(implicit context: L0NodeContext[IO]): IO[Boolean] = calculatedStateService.setCalculatedState(ordinal, state)
+      override def setCalculatedState(ordinal: SnapshotOrdinal, state: SessionCalculatedState)(implicit context: L0NodeContext[IO]): IO[Boolean] = calculatedStateService.setCalculatedState(ordinal, state)
 
-      override def hashCalculatedState(state: VoteCalculatedState)(implicit context: L0NodeContext[IO]): IO[Hash] = calculatedStateService.hashCalculatedState(state)
+      override def hashCalculatedState(state: SessionCalculatedState)(implicit context: L0NodeContext[IO]): IO[Hash] = calculatedStateService.hashCalculatedState(state)
 
-      override def serializeCalculatedState(state: VoteCalculatedState): IO[Array[Byte]] = IO(Serializers.serializeCalculatedState(state))
+      override def serializeCalculatedState(state: SessionCalculatedState): IO[Array[Byte]] = IO(Serializers.serializeCalculatedState(state))
 
-      override def deserializeCalculatedState(bytes: Array[Byte]): IO[Either[Throwable, VoteCalculatedState]] = IO(Deserializers.deserializeCalculatedState(bytes))
+      override def deserializeCalculatedState(bytes: Array[Byte]): IO[Either[Throwable, SessionCalculatedState]] = IO(Deserializers.deserializeCalculatedState(bytes))
     })
 
   private def makeL0Service: IO[BaseDataApplicationL0Service[IO]] = {
