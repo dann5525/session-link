@@ -1,7 +1,7 @@
 import Dependencies.*
 import sbt.*
 
-ThisBuild / organization := "com.my.voting_poll"
+ThisBuild / organization := "com.my.session_link"
 ThisBuild / scalaVersion := "2.13.10"
 ThisBuild / evictionErrorLevel := Level.Warn
 
@@ -14,9 +14,9 @@ ThisBuild / assemblyMergeStrategy := {
     oldStrategy(x)
 }
 
-lazy val root = (project in file(".")).
-  settings(
-    name := "voting_poll"
+lazy val root = (project in file("."))
+  .settings(
+    name := "session_link"
   ).aggregate(sharedData, currencyL0, currencyL1, dataL1)
 
 lazy val sharedData = (project in file("modules/shared_data"))
@@ -24,10 +24,10 @@ lazy val sharedData = (project in file("modules/shared_data"))
   .enablePlugins(BuildInfoPlugin)
   .enablePlugins(JavaAppPackaging)
   .settings(
-    name := "voting_poll-shared_data",
+    name := "session_link-shared_data",
     scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info", "-language:reflectiveCalls"),
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
-    buildInfoPackage := "com.my.voting_poll.shared_data",
+    buildInfoPackage := "com.my.session_link.shared_data",
     resolvers += Resolver.mavenLocal,
     resolvers += Resolver.githubPackages("abankowski", "http-request-signer"),
     Defaults.itSettings,
@@ -38,15 +38,16 @@ lazy val sharedData = (project in file("modules/shared_data"))
       Libraries.tessellationNodeShared
     )
   )
+
 lazy val currencyL1 = (project in file("modules/l1"))
   .enablePlugins(AshScriptPlugin)
   .enablePlugins(BuildInfoPlugin)
   .enablePlugins(JavaAppPackaging)
   .settings(
-    name := "voting_poll-currency-l1",
+    name := "session_link-currency-l1",
     scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info", "-language:reflectiveCalls"),
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
-    buildInfoPackage := "com.my.voting_poll.l1",
+    buildInfoPackage := "com.my.session_link.l1",
     resolvers += Resolver.mavenLocal,
     resolvers += Resolver.githubPackages("abankowski", "http-request-signer"),
     Defaults.itSettings,
@@ -64,10 +65,10 @@ lazy val currencyL0 = (project in file("modules/l0"))
   .enablePlugins(JavaAppPackaging)
   .dependsOn(sharedData)
   .settings(
-    name := "voting_poll-currency-l0",
+    name := "session_link-currency-l0",
     scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info", "-language:reflectiveCalls"),
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
-    buildInfoPackage := "com.my.voting_poll.l0",
+    buildInfoPackage := "com.my.session_link.l0",
     resolvers += Resolver.mavenLocal,
     resolvers += Resolver.githubPackages("abankowski", "http-request-signer"),
     Defaults.itSettings,
@@ -84,7 +85,10 @@ lazy val currencyL0 = (project in file("modules/l0"))
       Libraries.http4sDsl,
       Libraries.http4sServer,
       Libraries.http4sClient,
-      Libraries.http4sCirce
+      Libraries.http4sCirce,
+      // Add the fs2-io and ember-client dependencies
+      "co.fs2" %% "fs2-io" % "3.5.0",
+      "org.http4s" %% "http4s-ember-client" % "0.23.23"
     )
   )
 
@@ -94,10 +98,10 @@ lazy val dataL1 = (project in file("modules/data_l1"))
   .enablePlugins(JavaAppPackaging)
   .dependsOn(sharedData)
   .settings(
-    name := "voting_poll-data_l1",
+    name := "session_link-data_l1",
     scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info", "-language:reflectiveCalls"),
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
-    buildInfoPackage := "com.my.voting_poll.data_l1",
+    buildInfoPackage := "com.my.session_link.data_l1",
     resolvers += Resolver.mavenLocal,
     resolvers += Resolver.githubPackages("abankowski", "http-request-signer"),
     Defaults.itSettings,

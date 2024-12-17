@@ -1,4 +1,4 @@
-package com.my.voting_poll.shared_data.errors
+package com.my.session_link.shared_data.errors
 
 import cats.implicits.catsSyntaxValidatedIdBinCompat0
 import org.tessellation.currency.dataApplication.DataApplicationValidationError

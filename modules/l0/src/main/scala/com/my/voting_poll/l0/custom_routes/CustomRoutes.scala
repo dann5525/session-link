@@ -1,11 +1,11 @@
-package com.my.voting_poll.l0.custom_routes
+package com.my.session_link.l0.custom_routes
 
 import cats.effect.Async
 import cats.syntax.applicativeError._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
-import com.my.voting_poll.shared_data.calculated_state.CalculatedStateService
-import com.my.voting_poll.shared_data.types.Types._
+import com.my.session_link.shared_data.calculated_state.CalculatedStateService
+import com.my.session_link.shared_data.types.Types._
 import derevo.circe.magnolia.{decoder, encoder}
 import derevo.derive
 import eu.timepit.refined.auto._
@@ -38,7 +38,7 @@ case class CustomRoutes[F[_] : Async](calculatedStateService: CalculatedStateSer
       id = session.id,
       accessProvider = session.accessProvider,
       accessId = session.accessId,
-      data = session.accessObj,
+      accessObj = session.accessObj,
       endSnapshotOrdinal = session.endSnapshotOrdinal,
       status = status
     )

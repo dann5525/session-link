@@ -1,4 +1,4 @@
-package com.my.voting_poll.shared_data
+package com.my.session_link.shared_data
 
 import cats.data.NonEmptyList
 import cats.effect.Async
@@ -7,11 +7,11 @@ import cats.syntax.either._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.syntax.option._
-import com.my.voting_poll.shared_data.Utils.{getLastCurrencySnapshotOrdinal, getLastMetagraphIncrementalSnapshotInfo}
-import com.my.voting_poll.shared_data.combiners.Combiners.{combineCreateSession}
-import com.my.voting_poll.shared_data.errors.Errors.{CouldNotGetLatestCurrencySnapshot, DataApplicationValidationTypeOps}
-import com.my.voting_poll.shared_data.types.Types._
-import com.my.voting_poll.shared_data.validations.Validations.{createSessionValidations, createSessionValidationsWithSignature}
+import com.my.session_link.shared_data.Utils.{getLastCurrencySnapshotOrdinal, getLastMetagraphIncrementalSnapshotInfo}
+import com.my.session_link.shared_data.combiners.Combiners.{combineNotarizeSession}
+import com.my.session_link.shared_data.errors.Errors.{CouldNotGetLatestCurrencySnapshot, DataApplicationValidationTypeOps}
+import com.my.session_link.shared_data.types.Types._
+import com.my.session_link.shared_data.validations.Validations.{NotarizeSessionValidations, NotarizeSessionValidationsWithSignature}
 import org.slf4j.LoggerFactory
 import org.tessellation.currency.dataApplication.dataApplication.DataApplicationValidationErrorOr
 import org.tessellation.currency.dataApplication.{DataState, L0NodeContext, L1NodeContext}
@@ -28,7 +28,7 @@ object LifecycleSharedFunctions {
       response <- maybeLastSnapshotOrdinal.fold(CouldNotGetLatestCurrencySnapshot.invalid.pure[F]) { lastSnapshotOrdinal =>
         update match {
           
-          case session: CreateSession => createSessionValidations(session, none, lastSnapshotOrdinal.some)
+          case session: NotarizeSession => NotarizeSessionValidations(session, none, lastSnapshotOrdinal.some)
         }
       }
     } yield response
@@ -43,8 +43,8 @@ object LifecycleSharedFunctions {
           updates.traverse { signedUpdate =>
             signedUpdate.value match {
               
-              case session: CreateSession =>
-                createSessionValidationsWithSignature(session, signedUpdate.proofs, state)
+              case session: NotarizeSession =>
+                NotarizeSessionValidationsWithSignature(session, signedUpdate.proofs, state)
             }
           }.map(_.reduce)
         case _ => CouldNotGetLatestCurrencySnapshot.invalid.pure[F]
@@ -69,8 +69,8 @@ object LifecycleSharedFunctions {
               val update = signedUpdate.value
               update match {
                 
-                case session: CreateSession =>
-                  combineCreateSession(session, acc)
+                case session: NotarizeSession =>
+                  combineNotarizeSession(session, acc)
 
               }
             }

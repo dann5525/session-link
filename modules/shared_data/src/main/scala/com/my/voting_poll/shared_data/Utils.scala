@@ -1,4 +1,4 @@
-package com.my.voting_poll.shared_data
+package com.my.session_link.shared_data
 
 import cats.Functor
 import cats.syntax.functor._

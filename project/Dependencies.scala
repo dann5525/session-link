@@ -1,11 +1,12 @@
-import sbt.*
+import sbt._
 
 object Dependencies {
 
   object V {
     val tessellation = "2.8.1"
     val decline = "2.4.1"
-    val http4s = "0.23.16"
+    // Updated http4s version that supports forAsync with EmberClientBuilder
+    val http4s = "0.23.23"
   }
 
   def tessellation(artifact: String): ModuleID = "org.constellation" %% s"tessellation-$artifact" % V.tessellation
@@ -21,16 +22,17 @@ object Dependencies {
     val tessellationNodeShared = tessellation("node-shared")
     val tessellationCurrencyL0 = tessellation("currency-l0")
     val tessellationCurrencyL1 = tessellation("currency-l1")
+
     val declineCore = decline()
     val declineEffect = decline("effect")
     val declineRefined = decline("refined")
+
     val http4sCore = http4s("core")
     val http4sDsl = http4s("dsl")
     val http4sServer = http4s("ember-server")
     val http4sClient = http4s("ember-client")
     val http4sCirce = http4s("circe")
   }
-
 
   // Scalafix rules
   val organizeImports = "com.github.liancheng" %% "organize-imports" % "0.5.0"

@@ -1,4 +1,4 @@
-package com.my.voting_poll.shared_data.types
+package com.my.session_link.shared_data.types
 
 import derevo.circe.magnolia.{decoder, encoder}
 import derevo.derive
@@ -11,10 +11,10 @@ object Types {
 
  
   @derive(decoder, encoder)
-  case class CreateSession(accessProvider: Address, accessId:String, accessObj: String, endSnapshotOrdinal: Long) extends PollUpdate
+  case class NotarizeSession(accessProvider: Address, accessId:String, accessObj: String, endSnapshotOrdinal: Long) extends PollUpdate
   
   @derive(decoder, encoder)
-  case class Session(id: String, accessProvider: Address, accessId:String, accessObj: String, endSnapshotOrdinal: Long)  
+  case class Session(id: String, accessProvider: Address, accessId:String, accessObj: String, endSnapshotOrdinal: Long, inference: String)  
 
  //What does each session need from an abstract point? 
  //sessionId for the state maping,

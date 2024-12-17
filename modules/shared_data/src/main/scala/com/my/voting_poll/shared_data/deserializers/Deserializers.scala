@@ -1,6 +1,6 @@
-package com.my.voting_poll.shared_data.deserializers
+package com.my.session_link.shared_data.deserializers
 
-import com.my.voting_poll.shared_data.types.Types._
+import com.my.session_link.shared_data.types.Types._
 import io.circe.{Decoder, parser}
 import org.tessellation.currency.dataApplication.DataUpdate
 import org.tessellation.currency.dataApplication.dataApplication.DataApplicationBlock

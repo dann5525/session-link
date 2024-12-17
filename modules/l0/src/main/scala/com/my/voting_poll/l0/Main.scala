@@ -1,16 +1,16 @@
-package com.my.voting_poll.l0
+package com.my.session_link.l0
 
 import cats.data.NonEmptyList
 import cats.effect.{IO, Resource}
 import cats.syntax.applicative._
 import cats.syntax.option.catsSyntaxOptionId
 import cats.syntax.validated._
-import com.my.voting_poll.l0.custom_routes.CustomRoutes
-import com.my.voting_poll.shared_data.LifecycleSharedFunctions
-import com.my.voting_poll.shared_data.calculated_state.CalculatedStateService
-import com.my.voting_poll.shared_data.deserializers.Deserializers
-import com.my.voting_poll.shared_data.serializers.Serializers
-import com.my.voting_poll.shared_data.types.Types._
+import com.my.session_link.l0.custom_routes.CustomRoutes
+import com.my.session_link.shared_data.LifecycleSharedFunctions
+import com.my.session_link.shared_data.calculated_state.CalculatedStateService
+import com.my.session_link.shared_data.deserializers.Deserializers
+import com.my.session_link.shared_data.serializers.Serializers
+import com.my.session_link.shared_data.types.Types._
 import io.circe.{Decoder, Encoder}
 import org.http4s.circe.CirceEntityCodec.circeEntityDecoder
 import org.http4s.{EntityDecoder, HttpRoutes}

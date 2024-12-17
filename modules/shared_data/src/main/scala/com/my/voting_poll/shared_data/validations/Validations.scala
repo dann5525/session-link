@@ -1,12 +1,12 @@
-package com.my.voting_poll.shared_data.validations
+package com.my.session_link.shared_data.validations
 
 import cats.data.NonEmptySet
 import cats.effect.Async
 import cats.syntax.all._
-import com.my.voting_poll.shared_data.errors.Errors.valid
-import com.my.voting_poll.shared_data.serializers.Serializers
-import com.my.voting_poll.shared_data.types.Types.{CreateSession, VoteCalculatedState, VoteStateOnChain}
-import com.my.voting_poll.shared_data.validations.TypeValidators._
+import com.my.session_link.shared_data.errors.Errors.valid
+import com.my.session_link.shared_data.serializers.Serializers
+import com.my.session_link.shared_data.types.Types.{NotarizeSession, VoteCalculatedState, VoteStateOnChain}
+import com.my.session_link.shared_data.validations.TypeValidators._
 import org.tessellation.currency.dataApplication.DataState
 import org.tessellation.currency.dataApplication.dataApplication.DataApplicationValidationErrorOr
 
@@ -18,9 +18,9 @@ import org.tessellation.security.signature.signature.SignatureProof
 
 object Validations {
 
-  def createSessionValidations[F[_] : Async](update: CreateSession, maybeState: Option[DataState[VoteStateOnChain, VoteCalculatedState]], lastSnapshotOrdinal: Option[SnapshotOrdinal]): F[DataApplicationValidationErrorOr[Unit]] = Async[F].delay {
+  def NotarizeSessionValidations[F[_] : Async](update: NotarizeSession, maybeState: Option[DataState[VoteStateOnChain, VoteCalculatedState]], lastSnapshotOrdinal: Option[SnapshotOrdinal]): F[DataApplicationValidationErrorOr[Unit]] = Async[F].delay {
     val validatedCreatePollSnapshot = lastSnapshotOrdinal match {
-      case Some(value) => validateSnapshotCreateSession(value, update)
+      case Some(value) => validateSnapshotNotarizeSession(value, update)
       case None => valid
     }
 
@@ -40,11 +40,11 @@ object Validations {
       .traverse(_.toAddress[F])
   }
 
-  def createSessionValidationsWithSignature[F[_] : Async](update: CreateSession, proofs: NonEmptySet[SignatureProof], state: DataState[VoteStateOnChain, VoteCalculatedState])(implicit sp: SecurityProvider[F]): F[DataApplicationValidationErrorOr[Unit]] = {
+  def NotarizeSessionValidationsWithSignature[F[_] : Async](update: NotarizeSession, proofs: NonEmptySet[SignatureProof], state: DataState[VoteStateOnChain, VoteCalculatedState])(implicit sp: SecurityProvider[F]): F[DataApplicationValidationErrorOr[Unit]] = {
     for {
       addresses <- extractAddresses(proofs)
       validatedAddress = validateProvidedAddress(addresses, update.accessProvider)
-      validatedPoll <- createSessionValidations(update, state.some, None)
+      validatedPoll <- NotarizeSessionValidations(update, state.some, None)
     } yield validatedAddress.productR(validatedPoll)
   }
 }

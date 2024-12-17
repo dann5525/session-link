@@ -1,4 +1,4 @@
-package com.my.voting_poll.l1
+package com.my.session_link.l1
 
 import org.tessellation.BuildInfo
 import org.tessellation.currency.l1.CurrencyL1App

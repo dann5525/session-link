@@ -1,21 +1,27 @@
-package com.my.voting_poll.shared_data.combiners
+package com.my.session_link.shared_data.combiners
 
-import com.my.voting_poll.shared_data.serializers.Serializers
-import com.my.voting_poll.shared_data.types.Types._
+import com.my.session_link.shared_data.serializers.Serializers
+import com.my.session_link.shared_data.types.Types._
 import monocle.Monocle.toAppliedFocusOps
 import org.tessellation.currency.dataApplication.DataState
-
 import org.tessellation.security.hash.Hash
+import org.slf4j.LoggerFactory
 
 object Combiners {
-  
-  def combineCreateSession(createPoll: CreateSession, state: DataState[VoteStateOnChain, VoteCalculatedState]): DataState[VoteStateOnChain, VoteCalculatedState] = {
+
+  private val logger = LoggerFactory.getLogger("Combiners")
+
+  def combineNotarizeSession(createPoll: NotarizeSession, state: DataState[VoteStateOnChain, VoteCalculatedState]): DataState[VoteStateOnChain, VoteCalculatedState] = {
+    logger.info(s"combineNotarizeSession called with createPoll: $createPoll and state: $state")
     val sessionId = Hash.fromBytes(Serializers.serializeUpdate(createPoll)).toString
-    val newState = Session(sessionId, createPoll.accessProvider, createPoll.accessId, createPoll.accessObj, createPoll.endSnapshotOrdinal)
+    logger.info(s"Generated sessionId: $sessionId")
+    val newSession = Session(sessionId, createPoll.accessProvider, createPoll.accessId, createPoll.accessObj, createPoll.endSnapshotOrdinal, "")
 
     val newOnChain = VoteStateOnChain(state.onChain.updates :+ createPoll)
-    val newCalculatedState = state.calculated.focus(_.sessions).modify(_.updated(sessionId, newState))
+    val newCalculatedState = state.calculated.focus(_.sessions).modify(_.updated(sessionId, newSession))
 
-    DataState(newOnChain, newCalculatedState)
+    val result = DataState(newOnChain, newCalculatedState)
+    logger.info(s"Returning new state after combineNotarizeSession: $result")
+    result
   }
 }
