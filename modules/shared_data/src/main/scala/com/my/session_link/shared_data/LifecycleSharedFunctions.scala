@@ -8,10 +8,10 @@ import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.syntax.option._
 import com.my.session_link.shared_data.Utils.{getLastCurrencySnapshotOrdinal, getLastMetagraphIncrementalSnapshotInfo}
-import com.my.session_link.shared_data.combiners.Combiners.{combineNotarizeSession}
+import com.my.session_link.shared_data.combiners.Combiners.{combineNotarizeSession, combineCreateSession}
 import com.my.session_link.shared_data.errors.Errors.{CouldNotGetLatestCurrencySnapshot, DataApplicationValidationTypeOps}
 import com.my.session_link.shared_data.types.Types._
-import com.my.session_link.shared_data.validations.Validations.{NotarizeSessionValidations, NotarizeSessionValidationsWithSignature}
+import com.my.session_link.shared_data.validations.Validations.{NotarizeSessionValidations, NotarizeSessionValidationsWithSignature, CreateSessionValidations, CreateSessionValidationsWithSignature}
 import org.slf4j.LoggerFactory
 import org.tessellation.currency.dataApplication.dataApplication.DataApplicationValidationErrorOr
 import org.tessellation.currency.dataApplication.{DataState, L0NodeContext, L1NodeContext}
@@ -29,6 +29,8 @@ object LifecycleSharedFunctions {
         update match {
           
           case session: NotarizeSession => NotarizeSessionValidations(session, none, lastSnapshotOrdinal.some)
+
+          case session: CreateSession => CreateSessionValidations(session, none, lastSnapshotOrdinal.some)
         }
       }
     } yield response
@@ -45,6 +47,9 @@ object LifecycleSharedFunctions {
               
               case session: NotarizeSession =>
                 NotarizeSessionValidationsWithSignature(session, signedUpdate.proofs, state)
+
+              case session: CreateSession =>
+               CreateSessionValidationsWithSignature(session, signedUpdate.proofs, state)
             }
           }.map(_.reduce)
         case _ => CouldNotGetLatestCurrencySnapshot.invalid.pure[F]
@@ -71,6 +76,9 @@ object LifecycleSharedFunctions {
                 
                 case session: NotarizeSession =>
                   combineNotarizeSession(session, acc)
+
+                case session: CreateSession =>
+                  combineCreateSession(session, acc)
 
               }
             }

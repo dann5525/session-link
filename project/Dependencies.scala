@@ -7,6 +7,10 @@ object Dependencies {
     val decline = "2.4.1"
     // Updated http4s version that supports forAsync with EmberClientBuilder
     val http4s = "0.23.23"
+    val bouncyCastle = "1.70"
+    val cats = "2.9.0"
+    val circe = "0.14.3"
+    val web3j = "4.8.7" // Added Web3j version
   }
 
   def tessellation(artifact: String): ModuleID = "org.constellation" %% s"tessellation-$artifact" % V.tessellation
@@ -32,6 +36,14 @@ object Dependencies {
     val http4sServer = http4s("ember-server")
     val http4sClient = http4s("ember-client")
     val http4sCirce = http4s("circe")
+
+        // New Libraries
+    val bouncyCastle = "org.bouncycastle" % "bcprov-jdk15on" % V.bouncyCastle
+    val catsCore = "org.typelevel" %% "cats-core" % V.cats
+    val circeCore = "io.circe" %% "circe-core" % V.circe
+    val circeGeneric = "io.circe" %% "circe-generic" % V.circe
+    val circeParser = "io.circe" %% "circe-parser" % V.circe
+    val web3jCore = "org.web3j" % "core" % V.web3j // Correctly placed Web3j dependency
   }
 
   // Scalafix rules

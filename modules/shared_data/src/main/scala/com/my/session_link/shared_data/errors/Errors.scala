@@ -29,6 +29,10 @@ object Errors {
     val message = "Provided end snapshot ordinal lower than current snapshot!"
   }
 
+  case object InvalidSig extends DataApplicationValidationError {
+    val message = "Signature is wrong"
+  }
+
   case object CouldNotGetLatestCurrencySnapshot extends DataApplicationValidationError {
     val message = "Could not get latest currency snapshot!"
   }

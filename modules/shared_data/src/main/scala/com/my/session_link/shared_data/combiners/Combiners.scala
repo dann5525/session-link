@@ -24,4 +24,18 @@ object Combiners {
     logger.info(s"Returning new state after combineNotarizeSession: $result")
     result
   }
+
+  def combineCreateSession(createPoll: CreateSession, state: DataState[SessionStateOnChain, SessionCalculatedState]): DataState[SessionStateOnChain, SessionCalculatedState] = {
+    logger.info(s"combineNotarizeSession called with createPoll: $createPoll and state: $state")
+    val sessionId = Hash.fromBytes(Serializers.serializeUpdate(createPoll)).toString
+    logger.info(s"Generated sessionId: $sessionId")
+    val newSession = Session(sessionId, createPoll.accessProvider, createPoll.accessId, createPoll.accessObj, createPoll.endSnapshotOrdinal)
+
+    val newOnChain = SessionStateOnChain(state.onChain.updates :+ createPoll)
+    val newCalculatedState = state.calculated.focus(_.sessions).modify(_.updated(sessionId, newSession))
+
+    val result = DataState(newOnChain, newCalculatedState)
+    logger.info(s"Returning new state after combineNotarizeSession: $result")
+    result
+  }
 }

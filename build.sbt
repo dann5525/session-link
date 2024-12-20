@@ -35,7 +35,13 @@ lazy val sharedData = (project in file("modules/shared_data"))
       CompilerPlugin.kindProjector,
       CompilerPlugin.betterMonadicFor,
       CompilerPlugin.semanticDB,
-      Libraries.tessellationNodeShared
+      Libraries.tessellationNodeShared,
+      Libraries.bouncyCastle,
+      Libraries.catsCore,
+      Libraries.circeCore,
+      Libraries.circeGeneric,
+      Libraries.circeParser,
+      Libraries.web3jCore
     )
   )
 

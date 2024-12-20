@@ -12,6 +12,9 @@ object Types {
  
   @derive(decoder, encoder)
   case class NotarizeSession(accessProvider: Address, accessId:String, accessObj: String, endSnapshotOrdinal: Long) extends SessionUpdate
+
+    @derive(decoder, encoder)
+  case class CreateSession(accessProvider: Address, accessId:String, accessObj: String, endSnapshotOrdinal: Long, hash: String) extends SessionUpdate
   
   @derive(decoder, encoder)
   case class Session(id: String, accessProvider: Address, accessId:String, accessObj: String, endSnapshotOrdinal: Long)  
