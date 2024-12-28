@@ -17,19 +17,26 @@ import org.tessellation.routes.internal.{InternalUrlPrefix, PublicRoutes}
 import org.tessellation.schema.address.Address
 import org.typelevel.log4cats.SelfAwareStructuredLogger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
+import java.time.Instant
 
 case class CustomRoutes[F[_] : Async](calculatedStateService: CalculatedStateService[F]) extends Http4sDsl[F] with PublicRoutes[F] {
   implicit val logger: SelfAwareStructuredLogger[F] = Slf4jLogger.getLogger[F]
 
- 
-   @derive(decoder, encoder)
+  @derive(decoder, encoder)
   case class SessionResponse(
-    id : String,
-    accessId:String, 
+    id: String,
+    accessId: String, 
     accessProvider: Address, 
     accessObj: String,
     endSnapshotOrdinal: Long,
-    status: String
+    status: String,
+    metadata: Option[SessionMetadataResponse]
+  )
+
+  @derive(decoder, encoder)
+  case class SessionMetadataResponse(
+    startTime: Instant,
+    data: Map[String, MetadataValue]
   )
 
   private def formatSession(session: Session, lastOrdinal: Long): SessionResponse = {
@@ -40,7 +47,11 @@ case class CustomRoutes[F[_] : Async](calculatedStateService: CalculatedStateSer
       accessId = session.accessId,
       accessObj = session.accessObj,
       endSnapshotOrdinal = session.endSnapshotOrdinal,
-      status = status
+      status = status,
+      metadata = session.metadata.map(m => SessionMetadataResponse(
+        startTime = m.startTime,
+        data = m.data
+      ))
     )
   }
 

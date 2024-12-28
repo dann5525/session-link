@@ -5,7 +5,7 @@ import cats.effect.Async
 import cats.syntax.all._
 import com.my.session_link.shared_data.errors.Errors.valid
 import com.my.session_link.shared_data.serializers.Serializers
-import com.my.session_link.shared_data.types.Types.{NotarizeSession, SessionCalculatedState, SessionStateOnChain, CreateSession}
+import com.my.session_link.shared_data.types.Types.{NotarizeSession, SessionCalculatedState, SessionStateOnChain, CreateSession, CreateSolSession}
 import com.my.session_link.shared_data.validations.TypeValidators._
 import org.tessellation.currency.dataApplication.DataState
 import org.tessellation.currency.dataApplication.dataApplication.DataApplicationValidationErrorOr
@@ -23,6 +23,21 @@ object Validations {
   def CreateSessionValidations[F[_] : Async](update: CreateSession, maybeState: Option[DataState[SessionStateOnChain, SessionCalculatedState]], lastSnapshotOrdinal: Option[SnapshotOrdinal]): F[DataApplicationValidationErrorOr[Unit]] = Async[F].delay {
     val validatedCreatePollSnapshot = lastSnapshotOrdinal match {
       case Some(value) => validateSnapshotCreateSession(value, update)
+      case None => valid
+    }
+
+    maybeState match {
+      case Some(state) =>
+        val sessionId = Hash.fromBytes(Serializers.serializeUpdate(update))
+        val validatedPoll = validateIfSessionAlreadyExists(state, sessionId.toString)
+        validatedCreatePollSnapshot.productR(validatedPoll)
+      case None => validatedCreatePollSnapshot
+    }
+  }
+
+  def CreateSolSessionValidations[F[_] : Async](update: CreateSolSession, maybeState: Option[DataState[SessionStateOnChain, SessionCalculatedState]], lastSnapshotOrdinal: Option[SnapshotOrdinal]): F[DataApplicationValidationErrorOr[Unit]] = Async[F].delay {
+    val validatedCreatePollSnapshot = lastSnapshotOrdinal match {
+      case Some(value) => validateSnapshotCreateSolSession(value, update)
       case None => valid
     }
 
@@ -72,6 +87,15 @@ object Validations {
       validatedAddress = validateProvidedAddress(addresses, update.accessProvider)
       validatedPoll <- CreateSessionValidations(update, state.some, None)
       validatedSig = validateCreateSessionSignature(update)
+    } yield validatedAddress.productR(validatedPoll)productR(validatedSig)
+  }
+
+  def CreateSolSessionValidationsWithSignature[F[_] : Async](update: CreateSolSession, proofs: NonEmptySet[SignatureProof], state: DataState[SessionStateOnChain, SessionCalculatedState])(implicit sp: SecurityProvider[F]): F[DataApplicationValidationErrorOr[Unit]] = {
+    for {
+      addresses <- extractAddresses(proofs)
+      validatedAddress = validateProvidedAddress(addresses, update.accessProvider)
+      validatedPoll <- CreateSolSessionValidations(update, state.some, None)
+      validatedSig = validateCreateSolSessionSignature(update)
     } yield validatedAddress.productR(validatedPoll)productR(validatedSig)
   }
 }

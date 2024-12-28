@@ -1,7 +1,7 @@
 package com.my.session_link.shared_data.validations
 
 import com.my.session_link.shared_data.errors.Errors._
-import com.my.session_link.shared_data.types.Types.{NotarizeSession, SessionCalculatedState, SessionStateOnChain, CreateSession}
+import com.my.session_link.shared_data.types.Types.{NotarizeSession, SessionCalculatedState, SessionStateOnChain, CreateSession, CreateSolSession}
 import org.tessellation.currency.dataApplication.DataState
 import org.tessellation.currency.schema.currency.CurrencySnapshotInfo
 import org.tessellation.schema.SnapshotOrdinal
@@ -177,8 +177,19 @@ private def parseSignature(signature: String): Try[SignatureData] = {
     InvalidEndSnapshot.whenA(update.endSnapshotOrdinal < snapshotOrdinal.value.value)
   }
 
+  def validateSnapshotCreateSolSession(snapshotOrdinal: SnapshotOrdinal, update: CreateSolSession): DataApplicationValidationType = {
+    logger.debug(s"Validating snapshot create session: update.endSnapshotOrdinal=${update.endSnapshotOrdinal}, snapshotOrdinal=${snapshotOrdinal.value.value}")
+    InvalidEndSnapshot.whenA(update.endSnapshotOrdinal < snapshotOrdinal.value.value)
+  }
+
   def validateCreateSessionSignature(session: CreateSession): DataApplicationValidationType = {
     logger.debug(s"Validating Ethereum signature for CreateSession with accessId=${session.accessId}")
     InvalidSig.unlessA(verifySignature(session))
   }
+
+  def validateCreateSolSessionSignature(session: CreateSolSession): DataApplicationValidationType = {
+    logger.debug(s"Validating Solana signature for CreateSolSession with solanaAddress=${session.solanaAddress}")
+    InvalidSig.unlessA(SolanaValidator.verifySolanaSignature(session))
+  }
+
 }
