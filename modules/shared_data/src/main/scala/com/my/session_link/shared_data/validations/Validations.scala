@@ -5,7 +5,7 @@ import cats.effect.Async
 import cats.syntax.all._
 import com.my.session_link.shared_data.errors.Errors.valid
 import com.my.session_link.shared_data.serializers.Serializers
-import com.my.session_link.shared_data.types.Types.{NotarizeSession, SessionCalculatedState, SessionStateOnChain, CreateSession, CreateSolSession}
+import com.my.session_link.shared_data.types.Types.{NotarizeSession, SessionCalculatedState, SessionStateOnChain, CreateSession, CreateSolSession, ExtendSession, CloseSession}
 import com.my.session_link.shared_data.validations.TypeValidators._
 import org.tessellation.currency.dataApplication.DataState
 import org.tessellation.currency.dataApplication.dataApplication.DataApplicationValidationErrorOr
@@ -97,6 +97,59 @@ object Validations {
       validatedPoll <- CreateSolSessionValidations(update, state.some, None)
       validatedSig = validateCreateSolSessionSignature(update)
     } yield validatedAddress.productR(validatedPoll)productR(validatedSig)
+  }
+
+  def ExtendSessionValidations[F[_] : Async](
+    update: ExtendSession, 
+    maybeState: Option[DataState[SessionStateOnChain, SessionCalculatedState]], 
+    lastSnapshotOrdinal: Option[SnapshotOrdinal]
+  ): F[DataApplicationValidationErrorOr[Unit]] = Async[F].delay {
+    val validatedExtendSnapshot = lastSnapshotOrdinal match {
+      case Some(value) => validateSnapshotExtendSession(value, update)
+      case None => valid
+    }
+
+    maybeState match {
+      case Some(state) => 
+        val validatedSession = validateExtendSession(state, update)
+        validatedExtendSnapshot.productR(validatedSession)
+      case None => validatedExtendSnapshot
+    }
+  }
+
+  def ExtendSessionValidationsWithSignature[F[_] : Async](
+    update: ExtendSession, 
+    proofs: NonEmptySet[SignatureProof], 
+    state: DataState[SessionStateOnChain, SessionCalculatedState]
+  )(implicit sp: SecurityProvider[F]): F[DataApplicationValidationErrorOr[Unit]] = {
+    for {
+      addresses <- extractAddresses(proofs)
+      validatedAddress = validateProvidedAddress(addresses, update.accessProvider)
+      validatedSession <- ExtendSessionValidations(update, state.some, None)
+    } yield validatedAddress.productR(validatedSession)
+  }
+
+  def CloseSessionValidations[F[_] : Async](
+  update: CloseSession, 
+  maybeState: Option[DataState[SessionStateOnChain, SessionCalculatedState]], 
+  lastSnapshotOrdinal: Option[SnapshotOrdinal]
+): F[DataApplicationValidationErrorOr[Unit]] = Async[F].delay {
+  maybeState match {
+    case Some(state) => validateCloseSession(state, update)
+    case None => valid
+  }
+}
+
+  def CloseSessionValidationsWithSignature[F[_] : Async](
+    update: CloseSession, 
+    proofs: NonEmptySet[SignatureProof], 
+    state: DataState[SessionStateOnChain, SessionCalculatedState]
+  )(implicit sp: SecurityProvider[F]): F[DataApplicationValidationErrorOr[Unit]] = {
+    for {
+      addresses <- extractAddresses(proofs)
+      validatedAddress = validateProvidedAddress(addresses, update.accessProvider)
+      validatedSession <- CloseSessionValidations(update, state.some, None)
+    } yield validatedAddress.productR(validatedSession)
   }
 }
 

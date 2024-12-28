@@ -46,7 +46,8 @@ object Types {
     hash: String,
     metadata: Option[SessionMetadata] = None
   ) extends SessionUpdate
-
+  // acces object could be instead of full account a specifc domain .. so account/app this way the acces is limited and not exposed full account accees -> then also have it signed on creation by the app's backend to ensure UI is not compromised
+  // one time sessions  with action specifcation
   @derive(decoder, encoder)
   case class CreateSolSession(
     accessProvider: Address,  
@@ -56,7 +57,9 @@ object Types {
     solanaSignature: String,
     metadata: Option[SessionMetadata] = None
   ) extends SessionUpdate
-  
+  // acces object could be instead of full account a specifc domain .. so account/app this way the acces is limited and not exposed full account accees -> then also have it signed on creation by the app's backend to ensure UI is not compromised
+  // one time sessions  with action specifcation
+
   @derive(decoder, encoder)
   case class Session(
     id: String, 
@@ -65,7 +68,23 @@ object Types {
     accessObj: String, 
     endSnapshotOrdinal: Long,
     metadata: Option[SessionMetadata] = None
-  )  
+  ) 
+
+  @derive(decoder, encoder)
+  case class ExtendSession(
+    id: String,
+    accessProvider: Address,
+    endSnapshotOrdinal: Long
+  ) extends SessionUpdate
+
+  // while this is good for the notarized ones, we need to think about the implication for SOL and ETH created sessions.. to not open up security risks!!  
+
+  @derive(decoder, encoder)
+  case class CloseSession(
+    id: String,
+    accessProvider: Address
+  ) extends SessionUpdate
+
 
   @derive(decoder, encoder)
   case class SessionStateOnChain(updates: List[SessionUpdate]) extends DataOnChainState

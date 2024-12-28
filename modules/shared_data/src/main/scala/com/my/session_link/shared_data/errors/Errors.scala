@@ -40,5 +40,13 @@ object Errors {
   case object NotEnoughWalletBalance extends DataApplicationValidationError {
     val message = "Not enough wallet balance"
   }
+
+  case object SessionNotFound extends DataApplicationValidationError {
+    val message = "Session does not exist"
+  }
+
+  case object InvalidAccessProvider extends DataApplicationValidationError {
+    val message = "Access provider does not match the session's access provider"
+  }
 }
 

@@ -1,7 +1,7 @@
 package com.my.session_link.shared_data.validations
 
 import com.my.session_link.shared_data.errors.Errors._
-import com.my.session_link.shared_data.types.Types.{NotarizeSession, SessionCalculatedState, SessionStateOnChain, CreateSession, CreateSolSession}
+import com.my.session_link.shared_data.types.Types.{NotarizeSession, SessionCalculatedState, SessionStateOnChain, CreateSession, CreateSolSession, ExtendSession, CloseSession}
 import org.tessellation.currency.dataApplication.DataState
 import org.tessellation.currency.schema.currency.CurrencySnapshotInfo
 import org.tessellation.schema.SnapshotOrdinal
@@ -190,6 +190,46 @@ private def parseSignature(signature: String): Try[SignatureData] = {
   def validateCreateSolSessionSignature(session: CreateSolSession): DataApplicationValidationType = {
     logger.debug(s"Validating Solana signature for CreateSolSession with solanaAddress=${session.solanaAddress}")
     InvalidSig.unlessA(SolanaValidator.verifySolanaSignature(session))
+  }
+
+  def validateExtendSession(state: DataState[SessionStateOnChain, SessionCalculatedState], update: ExtendSession): DataApplicationValidationType = {
+    logger.debug(s"Validating extend session for id=${update.id}")
+    
+    if (!state.calculated.sessions.contains(update.id)) {
+      SessionNotFound.invalid
+    } else {
+      val session = state.calculated.sessions(update.id)
+      
+      if (update.accessProvider != session.accessProvider) {
+        InvalidAccessProvider.invalid
+      } else if (update.endSnapshotOrdinal <= session.endSnapshotOrdinal) {
+        InvalidEndSnapshot.invalid
+      } else {
+        valid
+      }
+    }
+  }
+
+  def validateCloseSession(state: DataState[SessionStateOnChain, SessionCalculatedState], update: CloseSession): DataApplicationValidationType = {
+    logger.debug(s"Validating close session for id=${update.id}")
+    
+    state.calculated.sessions.get(update.id) match {
+      case None => 
+        logger.warn(s"Session not found with id=${update.id}")
+        SessionNotFound.invalid
+      case Some(session) =>
+        if (update.accessProvider != session.accessProvider) {
+          logger.warn(s"Access provider mismatch: update=${update.accessProvider} session=${session.accessProvider}")
+          InvalidAccessProvider.invalid
+        } else {
+          valid
+        }
+    }
+  }
+
+  def validateSnapshotExtendSession(snapshotOrdinal: SnapshotOrdinal, update: ExtendSession): DataApplicationValidationType = {
+    logger.debug(s"Validating snapshot extend session: update.endSnapshotOrdinal=${update.endSnapshotOrdinal}, snapshotOrdinal=${snapshotOrdinal.value.value}")
+    InvalidEndSnapshot.whenA(update.endSnapshotOrdinal < snapshotOrdinal.value.value)
   }
 
 }

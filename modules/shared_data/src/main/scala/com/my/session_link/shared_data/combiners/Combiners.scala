@@ -52,4 +52,36 @@ object Combiners {
     logger.info(s"Returning new state after combineNotarizeSession: $result")
     result
   }
+
+  def combineExtendSession(extendSession: ExtendSession, state: DataState[SessionStateOnChain, SessionCalculatedState]): DataState[SessionStateOnChain, SessionCalculatedState] = {
+    logger.info(s"combineExtendSession called with extendSession: $extendSession and state: $state")
+    
+    val existingSession = state.calculated.sessions(extendSession.id)
+    val updatedSession = existingSession.copy(
+      endSnapshotOrdinal = extendSession.endSnapshotOrdinal
+    )
+
+    val newOnChain = SessionStateOnChain(state.onChain.updates :+ extendSession)
+    val newCalculatedState = state.calculated.focus(_.sessions).modify(_.updated(extendSession.id, updatedSession))
+
+    val result = DataState(newOnChain, newCalculatedState)
+    logger.info(s"Returning new state after combineExtendSession: $result")
+    result
+  }
+
+  def combineCloseSession(closeSession: CloseSession, state: DataState[SessionStateOnChain, SessionCalculatedState], currentOrdinal: Long): DataState[SessionStateOnChain, SessionCalculatedState] = {
+    logger.info(s"combineCloseSession called with closeSession: $closeSession and state: $state")
+    
+    val existingSession = state.calculated.sessions(closeSession.id)
+    val updatedSession = existingSession.copy(
+      endSnapshotOrdinal = currentOrdinal
+    )
+
+    val newOnChain = SessionStateOnChain(state.onChain.updates :+ closeSession)
+    val newCalculatedState = state.calculated.focus(_.sessions).modify(_.updated(closeSession.id, updatedSession))
+
+    val result = DataState(newOnChain, newCalculatedState)
+    logger.info(s"Returning new state after combineCloseSession: $result")
+    result
+  }
 }
